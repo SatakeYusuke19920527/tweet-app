@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import styles from './Auth.module.css';
 import { auth, provider, storage } from '../util/firebase';
 
@@ -15,6 +14,7 @@ import {
   Modal,
   IconButton,
   Box,
+  Link,
 } from '@material-ui/core';
 
 import SendIcon from '@material-ui/icons/Send';
@@ -28,8 +28,7 @@ const useStyles = makeStyles((theme) => ({
     height: '100vh',
   },
   image: {
-    backgroundImage:
-      'url(https://images.unsplash.com/photo-1608844211215-fd6bdb370432?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=668&q=80)',
+    backgroundImage: 'url(https://source.unsplash.com/random)',
     backgroundRepeat: 'no-repeat',
     backgroundColor:
       theme.palette.type === 'light'
@@ -58,8 +57,52 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Auth: React.FC<{}> = () => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [isLogin, setIsLogin] = useState<boolean>(true);
   const classes = useStyles();
+  const signInGoogle = async () => {
+    await auth
+      .signInWithPopup(provider)
+      .then(function (usr) {
+        alert('login success' + usr.user?.displayName);
+      })
+      .catch(function (error) {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log('エラー発生');
+        console.log('code : ', errorCode);
+        console.log('message : ', errorMessage);
+      });
+  };
+  const signInEmailAndPassword = async () => {
+    await auth
+      .signInWithEmailAndPassword(email, password)
+      .then((user) => {
+        // Signed in
+        console.log(user.user?.displayName, 'さんおかえりなさい。');
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log('code : ', errorCode);
+        console.log('message : ', errorMessage);
+      });
+  };
 
+  const signUpEmailAndPassword = async () => {
+    await auth
+      .createUserWithEmailAndPassword(email, password)
+      .then((user) => {
+        console.log(user.user?.displayName, 'さんようこそ！');
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log('code : ', errorCode);
+        console.log('message : ', errorMessage);
+      });
+  };
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
@@ -70,50 +113,64 @@ const Auth: React.FC<{}> = () => {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign in
+            {isLogin ? 'LogIn' : 'SignUp'}
           </Typography>
-          <form className={classes.form} noValidate>
-            <TextField
-              variant="outlined"
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              autoFocus
-            />
-            <TextField
-              variant="outlined"
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              color="primary"
-              className={classes.submit}
-            >
-              Sign In
-            </Button>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              color="secondary"
-              className={classes.submit}
-            >
-              Google Sign In
-            </Button>
-          </form>
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            id="email"
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            autoFocus
+            value={email}
+            onChange={(
+              e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+            ) => setEmail(e.target.value)}
+          />
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label="Password"
+            type="password"
+            id="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(
+              e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+            ) => setPassword(e.target.value)}
+          />
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            className={classes.submit}
+            onClick={signInEmailAndPassword}
+          >
+            {isLogin ? 'LogIn' : 'SignUp'}
+          </Button>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <span>Forgot Password?</span>
+            </Grid>
+            <Grid item xs={6}>
+              <span>{isLogin ? 'Create new Account' : 'back to login'}</span>
+            </Grid>
+          </Grid>
+          <Button
+            fullWidth
+            variant="contained"
+            color="secondary"
+            className={classes.submit}
+            onClick={signInGoogle}
+          >
+            Google Sign In
+          </Button>
         </div>
       </Grid>
     </Grid>
