@@ -54,11 +54,17 @@ const useStyles = makeStyles((theme) => ({
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
+  modeText: {
+    color: 'blue',
+    cursor: 'pointer',
+  },
 }));
 
 const Auth: React.FC<{}> = () => {
+  const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [avatarImage, setAvatarImage] = useState<File | null>(null);
   const [isLogin, setIsLogin] = useState<boolean>(true);
   const classes = useStyles();
   const signInGoogle = async () => {
@@ -113,8 +119,25 @@ const Auth: React.FC<{}> = () => {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            {isLogin ? 'LogIn' : 'SignUp'}
+            {isLogin ? 'LogIn' : 'Register'}
           </Typography>
+          {isLogin ? null : (
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              id="name"
+              label="Name"
+              name="name"
+              autoComplete="name"
+              autoFocus
+              value={name}
+              onChange={(
+                e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+              ) => setName(e.target.value)}
+            />
+          )}
           <TextField
             variant="outlined"
             margin="normal"
@@ -150,16 +173,22 @@ const Auth: React.FC<{}> = () => {
             variant="contained"
             color="primary"
             className={classes.submit}
-            onClick={signInEmailAndPassword}
+            startIcon={<EmailIcon />}
+            onClick={isLogin ? signInEmailAndPassword : signUpEmailAndPassword}
           >
-            {isLogin ? 'LogIn' : 'SignUp'}
+            {isLogin ? 'LogIn' : 'Register'}
           </Button>
           <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <span>Forgot Password?</span>
+            <Grid item xs>
+              <span className={classes.modeText}>Forgot Password?</span>
             </Grid>
-            <Grid item xs={6}>
-              <span>{isLogin ? 'Create new Account' : 'back to login'}</span>
+            <Grid item>
+              <span
+                onClick={() => setIsLogin(!isLogin)}
+                className={classes.modeText}
+              >
+                {isLogin ? 'Create new Account' : 'Back to login'}
+              </span>
             </Grid>
           </Grid>
           <Button
