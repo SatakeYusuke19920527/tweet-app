@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styles from './Auth.module.css';
 import { auth, provider, storage } from '../util/firebase';
+import { useDispatch } from 'react-redux';
+import { updateUserProfile } from '../features/userSlice';
 
 import {
   Avatar,
@@ -67,6 +69,15 @@ const Auth: React.FC<{}> = () => {
   const [avatarImage, setAvatarImage] = useState<File | null>(null);
   const [isLogin, setIsLogin] = useState<boolean>(true);
   const classes = useStyles();
+  const dispatch = useDispatch();
+
+  const onChangeImageHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files![0]) {
+      setAvatarImage(e.target.files![0]);
+      e.target.value = '';
+    }
+  };
+
   const signInGoogle = async () => {
     await auth
       .signInWithPopup(provider)
@@ -82,33 +93,35 @@ const Auth: React.FC<{}> = () => {
       });
   };
   const signInEmailAndPassword = async () => {
-    await auth
-      .signInWithEmailAndPassword(email, password)
-      .then((user) => {
-        // Signed in
-        console.log(user.user?.displayName, 'さんおかえりなさい。');
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log('code : ', errorCode);
-        console.log('message : ', errorMessage);
-      });
+    await auth.signInWithEmailAndPassword(email, password);
   };
 
   const signUpEmailAndPassword = async () => {
-    await auth
-      .createUserWithEmailAndPassword(email, password)
-      .then((user) => {
-        console.log(user.user?.displayName, 'さんようこそ！');
+    const authUser = await auth.createUserWithEmailAndPassword(email, password);
+    let url = '';
+    if (avatarImage) {
+      const S =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const N = 16;
+      const randomChar = Array.from(crypto.getRandomValues(new Uint32Array(N)))
+        .map((n) => S[n % S.length])
+        .join('');
+      const fileName = randomChar + '_' + avatarImage.name;
+      await storage.ref(`avatars/${fileName}`).put(avatarImage);
+      url = await storage.ref('avatars').child(fileName).getDownloadURL();
+    }
+    await authUser.user?.updateProfile({
+      displayName: name,
+      photoURL: url,
+    });
+    dispatch(
+      updateUserProfile({
+        displayName: name,
+        photoUrl: url,
       })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log('code : ', errorCode);
-        console.log('message : ', errorMessage);
-      });
+    );
   };
+
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
@@ -122,21 +135,42 @@ const Auth: React.FC<{}> = () => {
             {isLogin ? 'LogIn' : 'Register'}
           </Typography>
           {isLogin ? null : (
-            <TextField
-              variant="outlined"
-              margin="normal"
-              required
-              fullWidth
-              id="name"
-              label="Name"
-              name="name"
-              autoComplete="name"
-              autoFocus
-              value={name}
-              onChange={(
-                e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
-              ) => setName(e.target.value)}
-            />
+            <>
+              <TextField
+                variant="outlined"
+                margin="normal"
+                required
+                fullWidth
+                id="name"
+                label="Name"
+                name="name"
+                autoComplete="name"
+                autoFocus
+                value={name}
+                onChange={(
+                  e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+                ) => setName(e.target.value)}
+              />
+              <Box textAlign="center">
+                <IconButton color="secondary" aria-label="add an alarm">
+                  <label>
+                    <AccountCircleIcon
+                      fontSize="large"
+                      className={
+                        avatarImage
+                          ? styles.login_addIconLoaded
+                          : styles.login_addIcon
+                      }
+                    />
+                    <input
+                      className={styles.login_hiddenIcon}
+                      type="file"
+                      onChange={onChangeImageHandler}
+                    />
+                  </label>
+                </IconButton>
+              </Box>
+            </>
           )}
           <TextField
             variant="outlined"
@@ -174,7 +208,23 @@ const Auth: React.FC<{}> = () => {
             color="primary"
             className={classes.submit}
             startIcon={<EmailIcon />}
-            onClick={isLogin ? signInEmailAndPassword : signUpEmailAndPassword}
+            onClick={
+              isLogin
+                ? async () => {
+                    try {
+                      await signInEmailAndPassword();
+                    } catch (err) {
+                      alert(err.message);
+                    }
+                  }
+                : async () => {
+                    try {
+                      await signUpEmailAndPassword();
+                    } catch (err) {
+                      alert(err.message);
+                    }
+                  }
+            }
           >
             {isLogin ? 'LogIn' : 'Register'}
           </Button>

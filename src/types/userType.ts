@@ -1,3 +1,3 @@
 export type initialStateType = {
-  user: { uid: "", photoUrl: "", displayName: "" }
+  user: { uid: string, photoUrl: string, displayName: string }
 }
