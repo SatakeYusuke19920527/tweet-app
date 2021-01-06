@@ -16,7 +16,6 @@ import {
   Modal,
   IconButton,
   Box,
-  Link,
 } from '@material-ui/core';
 
 import SendIcon from '@material-ui/icons/Send';
@@ -92,6 +91,7 @@ const Auth: React.FC<{}> = () => {
         console.log('message : ', errorMessage);
       });
   };
+
   const signInEmailAndPassword = async () => {
     await auth.signInWithEmailAndPassword(email, password);
   };
@@ -203,6 +203,11 @@ const Auth: React.FC<{}> = () => {
             ) => setPassword(e.target.value)}
           />
           <Button
+            disabled={
+              isLogin
+                ? !email || password.length < 6
+                : !name || !email || password.length < 6 || !avatarImage
+            }
             fullWidth
             variant="contained"
             color="primary"
