@@ -24,6 +24,17 @@ import EmailIcon from '@material-ui/icons/Email';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 
+function getModalStyle() {
+  const top = 50;
+  const left = 50;
+
+  return {
+    top: `${top}%`,
+    left: `${left}%`,
+    transform: `translate(-${top}%, -${left}%)`,
+  };
+}
+
 const useStyles = makeStyles((theme) => ({
   root: {
     height: '100vh',
@@ -59,6 +70,15 @@ const useStyles = makeStyles((theme) => ({
     color: 'blue',
     cursor: 'pointer',
   },
+  modal: {
+    outline: 'none',
+    position: 'absolute',
+    width: 400,
+    borderRadius: 10,
+    backgroundColor: 'white',
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(10),
+  },
 }));
 
 const Auth: React.FC<{}> = () => {
@@ -67,8 +87,25 @@ const Auth: React.FC<{}> = () => {
   const [password, setPassword] = useState<string>('');
   const [avatarImage, setAvatarImage] = useState<File | null>(null);
   const [isLogin, setIsLogin] = useState<boolean>(true);
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const [resetEmail, setResetEmail] = useState<string>('');
   const classes = useStyles();
   const dispatch = useDispatch();
+
+  const sendResetEmailAndPassword = async (
+    e: React.MouseEvent<HTMLElement>
+  ) => {
+    await auth
+      .sendPasswordResetEmail(resetEmail)
+      .then(() => {
+        setOpenModal(false);
+        setResetEmail('');
+      })
+      .catch((err) => {
+        alert(err.message);
+        setResetEmail('');
+      });
+  };
 
   const onChangeImageHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files![0]) {
@@ -235,7 +272,12 @@ const Auth: React.FC<{}> = () => {
           </Button>
           <Grid container spacing={2}>
             <Grid item xs>
-              <span className={classes.modeText}>Forgot Password?</span>
+              <span
+                onClick={() => setOpenModal(true)}
+                className={classes.modeText}
+              >
+                Forgot Password?
+              </span>
             </Grid>
             <Grid item>
               <span
@@ -251,10 +293,32 @@ const Auth: React.FC<{}> = () => {
             variant="contained"
             color="secondary"
             className={classes.submit}
+            startIcon={<CameraIcon />}
             onClick={signInGoogle}
           >
             Google Sign In
           </Button>
+          <Modal open={openModal} onClose={() => setOpenModal(false)}>
+            <div style={getModalStyle()} className={classes.modal}>
+              <div className={styles.login_modal}>
+                <TextField
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  type="email"
+                  name="email"
+                  label="Reset E-mail"
+                  value={resetEmail}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setResetEmail(e.target.value);
+                  }}
+                />
+                <IconButton onClick={sendResetEmailAndPassword}>
+                  <SendIcon />
+                </IconButton>
+              </div>
+            </div>
+          </Modal>
         </div>
       </Grid>
     </Grid>
