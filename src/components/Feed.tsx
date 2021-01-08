@@ -1,5 +1,6 @@
 import React from 'react';
 import { auth } from '../util/firebase';
+import TweetInput from './TweetInput';
 const Feed = () => {
   const handleLogout = async () => {
     auth
@@ -16,6 +17,7 @@ const Feed = () => {
   return (
     <div>
       Feed
+      <TweetInput />
       <button onClick={handleLogout}>logout</button>
     </div>
   );
