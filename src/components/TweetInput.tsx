@@ -7,7 +7,7 @@ import { Avatar, Button, IconButton } from '@material-ui/core';
 import firebase from 'firebase/app';
 import AddAPhoto from '@material-ui/icons/AddAPhoto';
 
-const TweetInput = () => {
+const TweetInput: React.FC = () => {
   const user = useSelector(selectUser);
   const [tweetImage, setTweetImage] = useState<File | null>(null);
   const [tweetMsg, setTweetMsg] = useState<string>('');
@@ -31,7 +31,9 @@ const TweetInput = () => {
 
       uploadTweetImg.on(
         firebase.storage.TaskEvent.STATE_CHANGED,
-        () => {},
+        () => {
+          console.log('sending now');
+        },
         (err) => {
           alert(err.message);
         },
@@ -50,9 +52,13 @@ const TweetInput = () => {
                 createAt: firebase.firestore.FieldValue.serverTimestamp(),
               });
             });
+          setTweetImage(null);
+          setTweetMsg('');
+          console.log('send tweet!!');
         }
       );
     } else {
+      console.log('sending now');
       await db
         .collection('posts')
         .add({
@@ -67,6 +73,7 @@ const TweetInput = () => {
           console.log('Document written with ID: ', docRef.id);
           setTweetImage(null);
           setTweetMsg('');
+          console.log('send tweet!!');
         })
         .catch(function (error) {
           console.error('Error adding document: ', error);
@@ -96,7 +103,7 @@ const TweetInput = () => {
             <label>
               <AddAPhoto
                 className={
-                  tweetImage ? styles.tweet_addIcon : styles.tweet_addIconLoaded
+                  tweetImage ? styles.tweet_addIconLoaded : styles.tweet_addIcon
                 }
               />
               <input
@@ -110,7 +117,9 @@ const TweetInput = () => {
         <Button
           type="submit"
           disabled={!tweetMsg}
-          className={tweetMsg ? styles.tweet_sendBtn : styles.sendDisableBtn}
+          className={
+            tweetMsg ? styles.tweet_sendBtn : styles.tweet_sendDisableBtn
+          }
         >
           Tweet
         </Button>
