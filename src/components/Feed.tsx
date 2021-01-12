@@ -1,24 +1,44 @@
-import React from 'react';
-import { auth } from '../util/firebase';
+import React, { useState, useEffect } from 'react';
 import TweetInput from './TweetInput';
-const Feed = () => {
-  const handleLogout = async () => {
-    auth
-      .signOut()
-      .then(function () {
-        console.log('sign out bye');
-      })
-      .catch(function (error) {
-        // An error happened.
-        console.log('エラー発生');
-        console.log(error.errorMessage);
+import styles from './Feed.module.css';
+import { db } from '../util/firebase';
+const Feed: React.FC = () => {
+  const [posts, setPosts] = useState([
+    {
+      id: '',
+      avatar: '',
+      image: '',
+      text: '',
+      timestamp: null,
+      username: '',
+    },
+  ]);
+
+  useEffect(() => {
+    const unSub = db
+      .collection('posts')
+      .orderBy('createAt', 'asc')
+      .onSnapshot((snapshot) => {
+        setPosts(
+          snapshot.docs.map((doc) => ({
+            id: doc.data().uid,
+            avatar: doc.data().photoUrl,
+            image: doc.data().image,
+            text: doc.data().text,
+            timestamp: doc.data().createAt,
+            username: doc.data().name,
+          }))
+        );
       });
-  };
+    return () => unSub();
+  }, []);
+
   return (
-    <div>
-      Feed
+    <div className={styles.feed}>
       <TweetInput />
-      <button onClick={handleLogout}>logout</button>
+      {posts.map((post) => {
+        return <div>{post.text}</div>;
+      })}
     </div>
   );
 };
