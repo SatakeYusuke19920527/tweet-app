@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styles from './TweetInput.module.css';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectUser } from '../features/userSlice';
 import { auth, storage, db } from '../util/firebase';
 import { Avatar, Button, IconButton } from '@material-ui/core';
@@ -17,9 +17,8 @@ const TweetInput = () => {
       e.target.value = '';
     }
   };
-  // const sendTweet = async (e: React.FormEvent<HTMLFormElement>) => {
-  const sendTweet = async () => {
-    // e.preventDefault();
+  const sendTweet = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (tweetImage) {
       const S =
         'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
