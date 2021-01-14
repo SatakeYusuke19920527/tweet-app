@@ -9,12 +9,46 @@ import { makeStyles } from '@material-ui/core/styles';
 import MessageIcon from '@material-ui/icons/Message';
 import SendIcon from '@material-ui/icons/Send';
 import { PostType } from '../types/PostType';
-import { DirectionsBusTwoTone } from '@material-ui/icons';
+import { CommentType } from '../types/CommentType';
+
+const useStyles = makeStyles((theme) => ({
+  small: {
+    width: theme.spacing(3),
+    height: theme.spacing(3),
+    marginRight: theme.spacing(1),
+  },
+}));
 
 const Post: React.FC<PostType> = (props) => {
   const user = useSelector(selectUser);
   const [comment, setComment] = useState<string>('');
-  const { postId, avatar, image, text, timestamp, username } = props;
+  const [comments, setComments] = useState<CommentType[]>([
+    { id: '', avatar: '', text: '', timestamp: null, username: '' },
+  ]);
+  const [openComments, setOpenComments] = useState(false);
+  const classes = useStyles();
+  const { postId, avatar, image } = props;
+
+  useEffect(() => {
+    const unSub = () => {
+      db.collection('posts')
+        .doc(postId)
+        .collection('comments')
+        .orderBy('timestamp', 'desc')
+        .onSnapshot(function (querySnapshot) {
+          setComments(
+            querySnapshot.docs.map((doc) => ({
+              id: doc.id,
+              avatar: doc.data().avatar,
+              text: doc.data().text,
+              timestamp: doc.data().timestamp,
+              username: doc.data().username,
+            }))
+          );
+        });
+    };
+    return () => unSub();
+  }, [postId]);
 
   const newComment = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -48,31 +82,52 @@ const Post: React.FC<PostType> = (props) => {
         </div>
         {image && (
           <div className={styles.post_tweetImage}>
-            <img src={image} alt="image" />
+            <img src={image} alt="avatar" />
           </div>
         )}
-        <form action="post" onSubmit={newComment}>
-          <div className={styles.post_form}>
-            <input
-              type="text"
-              className={styles.post_input}
-              placeholder="Type new Comment..."
-              value={comment}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setComment(e.target.value)
-              }
-            />
-            <button
-              disabled={!comment}
-              className={
-                comment ? styles.post_button : styles.post_post_buttonDisable
-              }
-              type="submit"
-            >
-              <SendIcon className={styles.post_commentIcon} />
-            </button>
-          </div>
-        </form>
+        <MessageIcon
+          className={styles.post_commentIcon}
+          onClick={() => setOpenComments(!openComments)}
+        />
+        {openComments && (
+          <>
+            {comments.map((com) => (
+              <div key={com.id} className={styles.post_comment}>
+                <Avatar src={com.avatar} className={classes.small} />
+
+                <span className={styles.post_commentUser}>@{com.username}</span>
+                <span className={styles.post_commentText}>{com.text} </span>
+                <span className={styles.post_headerTime}>
+                  {new Date(com.timestamp?.toDate()).toLocaleString()}
+                </span>
+              </div>
+            ))}
+            <form action="post" onSubmit={newComment}>
+              <div className={styles.post_form}>
+                <input
+                  type="text"
+                  className={styles.post_input}
+                  placeholder="Type new Comment..."
+                  value={comment}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setComment(e.target.value)
+                  }
+                />
+                <button
+                  disabled={!comment}
+                  className={
+                    comment
+                      ? styles.post_button
+                      : styles.post_post_buttonDisable
+                  }
+                  type="submit"
+                >
+                  <SendIcon className={styles.post_commentIcon} />
+                </button>
+              </div>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
