@@ -12,7 +12,21 @@ import { PostType } from '../types/PostType';
 import { DirectionsBusTwoTone } from '@material-ui/icons';
 
 const Post: React.FC<PostType> = (props) => {
+  const user = useSelector(selectUser);
+  const [comment, setComment] = useState<string>('');
   const { postId, avatar, image, text, timestamp, username } = props;
+
+  const newComment = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    db.collection('posts').doc(postId).collection('comments').add({
+      avatar: user.photoUrl,
+      text: comment,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      username: user.displayName,
+    });
+    setComment('');
+  };
+
   return (
     <div className={styles.post}>
       <div className={styles.post_avatar}>
@@ -37,6 +51,28 @@ const Post: React.FC<PostType> = (props) => {
             <img src={image} alt="image" />
           </div>
         )}
+        <form action="post" onSubmit={newComment}>
+          <div className={styles.post_form}>
+            <input
+              type="text"
+              className={styles.post_input}
+              placeholder="Type new Comment..."
+              value={comment}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setComment(e.target.value)
+              }
+            />
+            <button
+              disabled={!comment}
+              className={
+                comment ? styles.post_button : styles.post_post_buttonDisable
+              }
+              type="submit"
+            >
+              <SendIcon className={styles.post_commentIcon} />
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ const Feed: React.FC = () => {
       .onSnapshot((snapshot) => {
         setPosts(
           snapshot.docs.map((doc) => ({
-            id: doc.data().uid,
+            id: doc.id,
             avatar: doc.data().photoUrl,
             image: doc.data().image,
             text: doc.data().text,
@@ -33,23 +33,26 @@ const Feed: React.FC = () => {
       });
     return () => unSub();
   }, []);
-
   return (
     <div className={styles.feed}>
       <TweetInput />
-      {posts.map((post, index) => {
-        return (
-          <Post
-            key={index}
-            postId={post.id}
-            avatar={post.avatar}
-            image={post.image}
-            text={post.text}
-            timestamp={post.timestamp}
-            username={post.username}
-          />
-        );
-      })}
+      {posts[0]?.id && (
+        <>
+          {posts.map((post, index) => {
+            return (
+              <Post
+                key={index}
+                postId={post.id}
+                avatar={post.avatar}
+                image={post.image}
+                text={post.text}
+                timestamp={post.timestamp}
+                username={post.username}
+              />
+            );
+          })}
+        </>
+      )}
     </div>
   );
 };
