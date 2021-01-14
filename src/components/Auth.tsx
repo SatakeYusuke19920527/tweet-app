@@ -118,7 +118,7 @@ const Auth: React.FC<{}> = () => {
     await auth
       .signInWithPopup(provider)
       .then(function (usr) {
-        alert('login success' + usr.user?.displayName);
+        console.log('login :', usr.user?.displayName);
       })
       .catch(function (error) {
         const errorCode = error.code;

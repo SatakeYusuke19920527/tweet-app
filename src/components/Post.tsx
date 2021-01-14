@@ -4,7 +4,7 @@ import { db } from '../util/firebase';
 import firebase from 'firebase/app';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../features/userSlice';
-import { Avatar } from '@material-ui/core';
+import { Avatar, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import MessageIcon from '@material-ui/icons/Message';
 import SendIcon from '@material-ui/icons/Send';
@@ -113,7 +113,7 @@ const Post: React.FC<PostType> = (props) => {
                     setComment(e.target.value)
                   }
                 />
-                <button
+                <Button
                   disabled={!comment}
                   className={
                     comment
@@ -123,7 +123,7 @@ const Post: React.FC<PostType> = (props) => {
                   type="submit"
                 >
                   <SendIcon className={styles.post_commentIcon} />
-                </button>
+                </Button>
               </div>
             </form>
           </>
